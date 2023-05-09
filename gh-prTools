@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Determine if an executable is in the PATH
+if ! type -p tr >/dev/null; then
+ echo "tr not found on the system" >&2
+ exit 1
+fi
+
+parseCommits(){
+  local commits
+  commits="$(gh pr view --json commits --jq '.commits[]|"- \(.messageHeadline)\(.messageBody)"')"
+  echo "$commits"
+}
+
+removeHorizontalEllipsis() {
+  local commits
+  commits=$(echo "$1" | tr -d '……')
+  echo "$commits"
+}
+
+setDescription() {
+  echo "$1" | gh pr edit -F -
+}
+
+commits=$(parseCommits)
+commits=$(removeHorizontalEllipsis "$commits")
+setDescription "$commits"
